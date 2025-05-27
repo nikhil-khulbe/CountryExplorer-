@@ -28,27 +28,27 @@ const Detail = ({route}) => {
       </Pressable>
       <Image source={{uri: country.flags.png}} style={styles.imgCtn} />
       <Text style={styles.textSize}>
-        Official Name: {country.name.official}
+        Official Name: {country.name?.official}
       </Text>
-      <Text style={styles.textSize}>Capital: {country.capital?.[0]}</Text>
-      <Text style={styles.textSize}>Region: {country.region}</Text>
-      <Text style={styles.textSize}>Subregion: {country.subregion}</Text>
+      <Text style={styles.textSize}>Capital: {country?.capital?.[0]}</Text>
+      <Text style={styles.textSize}>Region: {country?.region}</Text>
+      <Text style={styles.textSize}>Subregion: {country?.subregion}</Text>
       <Text style={styles.textSize}>
-        Population: {country.population.toLocaleString()}
+        Population: {country?.population.toLocaleString()}
       </Text>
       <View style={styles.langCtn}>
         <Text style={{fontSize: 20, fontWeight: 'bold'}}>Languages</Text>
-        {Object.values(country.languages).map((el, i) => (
+        {Object.values(country?.languages).map((el, i) => (
           <Text style={{fontSize: 15}}>
             {i + 1}: {el}
           </Text>
         ))}
       </View>
       <Text style={styles.textSize}>
-        {Object.values(country.currencies)?.[0].name}
+        {Object.values(country?.currencies)?.[0].name}
       </Text>
       <Pressable
-        onPress={() => Linking.openURL(country.maps.googleMaps)}
+        onPress={() => Linking.openURL(country.maps?.googleMaps)}
         style={({pressed}) => [
           {opacity: pressed ? 0.5 : 1, color: pressed ? 'black' : 'blue'},
         ]}>

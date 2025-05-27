@@ -21,7 +21,9 @@ const Home = ({navigation}) => {
   let [sortOption, setSortOption] = useState(null);
   let [selectedRegion, setSelectedRegion] = useState(null);
   let [isLoading, setIsLoading] = useState(true);
+  let [isLoadingMore, setIsLoadingMore] = useState(false);
   let [modalVisible, setModalVisible] = useState(false);
+  let [page, setPage] = useState(1);
 
   const timerRef = useRef(null);
   useEffect(() => {
@@ -30,7 +32,8 @@ const Home = ({navigation}) => {
         setIsLoading(true);
         let response = await axios.get('https://restcountries.com/v3.1/all');
         let data = response.data;
-        setDisplayCountry(data);
+        let initialData = data.slice(0, 10);
+        setDisplayCountry(initialData);
         setOriginalList(data);
 
         setRegionList([...new Set(originalList.map(el => el.region))]);
@@ -44,7 +47,14 @@ const Home = ({navigation}) => {
   }, []);
   // console.log(displayCountry[0].capital[0]);
   const renderItem = ({item}) => (
-    <Pressable onPress={() => navigation.navigate('Detail', {country: item})}>
+    <Pressable
+      key={item.name.commom}
+      onPress={() => navigation.navigate('Detail', {country: item})}
+      style={({pressed}) => [
+        {
+          backgroundColor: pressed ? 'rgba(244, 104, 17, 1)' : 'white',
+        },
+      ]}>
       <View style={styles.countryCtn}>
         <View>
           <Image source={{uri: item.flags.png}} style={styles.imgCtn} />
@@ -92,7 +102,8 @@ const Home = ({navigation}) => {
         }
         return 0;
       });
-      setDisplayCountry(sortCountaries);
+      setDisplayCountry(sortCountaries.slice(0, 10));
+      setPage(1);
       setIsLoading(false);
     }
   }, [sortOption]);
@@ -113,13 +124,41 @@ const Home = ({navigation}) => {
       key={item}
       style={({pressed}) => [styles.selectBtnCtn, {opacity: pressed ? 0.5 : 1}]}
       onPress={() => {
+        let filteredDataRegion = originalList.filter(el => el.region == item);
         setSelectedRegion(item);
         setModalVisible(false);
-        setDisplayCountry(originalList.filter(el => el.region == item));
+        setDisplayCountry(filteredDataRegion.slice(0, 10));
+        setPage(1);
       }}>
       <Text>{item}</Text>
     </Pressable>
   );
+
+  const loadMoreData = () => {
+    setIsLoadingMore(true);
+    try {
+      let nextPage = page + 1;
+      let startIndex = nextPage * 10;
+      let endIndex = startIndex + 10;
+      let newData = originalList.slice(startIndex, endIndex);
+      setDisplayCountry(prev => [...prev, ...newData]);
+      setPage(nextPage);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
+
+  const renderFooter = () => {
+    if (setIsLoadingMore) {
+      return (
+        <View style={{paddingVertical: 20}}>
+          <ActivityIndicator size="large" color="blue" />
+        </View>
+      );
+    }
+  };
 
   return (
     <View style={styles.mainCtn}>
@@ -168,11 +207,14 @@ const Home = ({navigation}) => {
       <FlatList
         data={displayCountry}
         keyExtractor={item => item.cca2}
-        initialNumToRender={5}
+        initialNumToRender={10}
         renderItem={renderItem}
-        maxToRenderPerBatch={5}
-        windowSize={5}
+        maxToRenderPerBatch={10}
+        windowSize={10}
         removeClippedSubviews={true}
+        onEndReached={loadMoreData}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={renderFooter}
       />
     </View>
   );
@@ -260,7 +302,7 @@ const styles = StyleSheet.create({
     height: '50%',
     width: '50%',
     borderRadius: 15,
-    padding: 10,
+    paddingTop: 30,
   },
   LoadingAni: {
     height: 200,
